@@ -3,13 +3,25 @@ import os
 # how many elements we can hold in memory
 sizeBlock = 10
 
+# sort lines as Integer value
+asInt = True
+
+
+def sortKey(x):
+    return int(x) if asInt else x
+
+
+def comparator(x1, x2):
+    return int(x1) < int(x2) if asInt else x1 < x2
+
 
 class Stream:
-    elements = []
+    _chunkSize = 10
 
     def __init__(self, path):
         self.file = open(path, 'r')
-        self.elements = [int(x) for x in self.file.readline().split(' ') if x]
+        self.elements = []
+        self._readNextChunk()
 
     def next(self):
         assert(len(self.elements) > 0)
@@ -26,19 +38,25 @@ class Stream:
 
     def _readNextChunk(self):
         try:
-            self.elements = [int(x) for x in self.file.readline().split(' ') if x]
+            for i in range(self._chunkSize):
+                line = self.file.readline()
+                if line:
+                    self.elements.append(line.strip('\n'))
         except EOFError as e:
             pass
 
     def __bool__(self):
         return bool(self.elements)
 
+    def close(self):
+        if self.file:
+            self.file.close()
+
 
 class SorterHelper:
-    streams = []
-
     def __init__(self, paths):
-        self.comparator = lambda x1, x2: x1 < x2
+        # TODO: change to priorityQueue
+        self.streams = []
         for path in paths:
             self.streams.append(Stream(path))
 
@@ -46,27 +64,26 @@ class SorterHelper:
         while self.streams:
             minimalIdx = 0
             for i in range(len(self.streams)):
-                if self.comparator(self.streams[i].next(), self.streams[minimalIdx].next()):
+                if comparator(self.streams[i].next(), self.streams[minimalIdx].next()):
                     minimalIdx = i
 
             yield self.streams[minimalIdx].pop()
 
             if not self.streams[minimalIdx]:
+                self.streams[minimalIdx].close()
                 self.streams.pop(minimalIdx)
 
 
 class Sorter:
-    paths = []
-
     def sort(self, filename):
+        self.paths = []
         self.splitAndSort(filename)
 
-        # for debbugin
+        # for debug
         filename += '_dest'
 
         with open(filename, 'w') as f:
-            for element in SorterHelper(self.paths):
-                f.write(str(element) + '\n')
+            f.write('\n'.join(SorterHelper(self.paths)))
 
         self.deleteTempFiles()
 
@@ -74,12 +91,17 @@ class Sorter:
         with open(filename, 'r') as f:
             cache = []
             for line in f:
-                cache += [int(x) for x in line.split(' ')]
-                if len(cache) > sizeBlock:
+                if not line:
+                    continue
+
+                cache.append(line.strip('\n'))
+                # TODO: current line may be very big, change to read byte
+                if len(cache) >= sizeBlock:
                     self.dumpToFile(cache)
                     cache.clear()
 
-        self.dumpToFile(cache)
+        if cache:
+            self.dumpToFile(cache)
 
     def createNewFile(self):
         self.paths.append('__tempFileForSort' + str(len(self.paths)))
@@ -91,8 +113,7 @@ class Sorter:
 
     def dumpToFile(self, cache):
         with open(self.createNewFile(), 'w') as f:
-            for elem in sorted(cache):
-                f.write(str(elem) + ' ')
+            f.write('\n'.join(sorted(cache, key=sortKey)))
 
 
 def main():
