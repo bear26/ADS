@@ -1,8 +1,8 @@
-# how many characters we can hold in memory
-cacheSize = 30
+# how many line we can hold in memory
+cacheSize = 100000
 
 # sort lines as Integer value
-asInt = True
+asInt = False
 
 
 def sortKey(x):

@@ -2,14 +2,14 @@ import os
 import heapq
 
 import Settings
-from FileReader import Stream, FileReader
+from Stream import Stream
 
 
 class SorterHelper:
     def __init__(self, paths):
         self.streams = []
         for path in paths:
-            heapq.heappush(self.streams, Stream(path, Settings.cacheSize / len(paths)))
+            heapq.heappush(self.streams, Stream(path, int(Settings.cacheSize / len(paths))))
 
     def __iter__(self):
         while self.streams:
@@ -28,9 +28,6 @@ class Sorter:
         self.paths = []
         self.splitAndSort(filename)
 
-        # for debug
-        filename += '_dest'
-
         with open(filename, 'w') as f:
             for elem in SorterHelper(self.paths):
                 f.write(elem + '\n')
@@ -38,28 +35,19 @@ class Sorter:
         self.deleteTempFiles()
 
     def splitAndSort(self, filename):
-        fileReader = FileReader(filename)
-
-        while fileReader:
-            fileReader.resetCacheSize(Settings.cacheSize)
-
+        with open(filename, 'r') as f:
             cache = []
-
-            while True:
-                line = fileReader.readline()
-
+            for line in f:
                 if not line:
-                    break
+                    continue
 
-                cache.append(line)
-
-            self.dumpToFile(cache)
-            cache.clear()
-
-        fileReader.close()
+                cache.append(line.strip('\n'))
+                if len(cache) >= Settings.cacheSize:
+                    self.dumpToFile(cache)
+                    cache.clear()
 
     def createNewFile(self):
-        self.paths.append('__tempFileForSort' + str(len(self.paths)))
+        self.paths.append('__tmpFile' + str(len(self.paths)))
         return self.paths[-1]
 
     def deleteTempFiles(self):
