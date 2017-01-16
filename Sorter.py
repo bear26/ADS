@@ -30,7 +30,7 @@ class Sorter:
 
         with open(filename, 'w') as f:
             for elem in SorterHelper(self.paths):
-                f.write(elem + '\n')
+                f.write(elem + os.linesep)
 
         self.deleteTempFiles()
 
@@ -56,4 +56,4 @@ class Sorter:
 
     def dumpToFile(self, cache):
         with open(self.createNewFile(), 'w') as f:
-            f.write('\n'.join(sorted(cache, key=Settings.sortKey)))
+            f.write(os.linesep.join(sorted(cache, key=Settings.sortKey)))

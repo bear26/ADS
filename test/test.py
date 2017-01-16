@@ -27,7 +27,7 @@ def readStrs(filename):
             if not line:
                 continue
 
-            elements.append(line.strip('\n'))
+            elements.append(line.strip(os.linesep))
 
     return elements
 
@@ -38,7 +38,7 @@ def inMemorySort(filename):
 
     with open(filename, 'w') as f:
         for element in sorted(elements):
-            f.write(str(element) + '\n')
+            f.write(str(element) + os.linesep)
 
 
 @timer
@@ -54,7 +54,7 @@ def generateFile(filename):
             s = str()
             for i in range(length):
                 s += random.choice(string.ascii_letters)
-            f.write(s + '\n')
+            f.write(s + os.linesep)
 
 
 if __name__ == '__main__':

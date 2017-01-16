@@ -1,3 +1,5 @@
+import os
+
 import Settings
 
 
@@ -32,7 +34,7 @@ class Stream:
             for i in range(self.chunkSize):
                 line = self.file.readline()
                 if line:
-                    self.elements.append(line.strip('\n'))
+                    self.elements.append(line.strip(os.linesep))
         except EOFError as e:
             pass
 
