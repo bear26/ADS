@@ -1,5 +1,5 @@
 # how many line we can hold in memory
-cacheSize = 100000
+cacheSize = 50
 
 # sort lines as Integer value
 asInt = False

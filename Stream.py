@@ -34,10 +34,13 @@ class Stream:
             for i in range(self.chunkSize):
                 line = self.file.readline()
                 if line:
-                    self.elements.append(line.strip(os.linesep))
+                    self.elements.append(line.strip('\n'))
         except EOFError as e:
             pass
 
-    def close(self):
+    def closeAndRemove(self):
         if self.file:
+            name = self.file.name
             self.file.close()
+            os.remove(name)
+
